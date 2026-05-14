@@ -2,7 +2,7 @@ from tempfile import NamedTemporaryFile
 
 from django.utils.translation import gettext_noop
 from i18nfield.strings import LazyI18nString
-from pretalx.schedule.exporters import ScheduleData
+from pretalx.schedule.interfaces.exporters import ScheduleData
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
