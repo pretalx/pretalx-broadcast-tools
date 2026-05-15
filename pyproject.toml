@@ -20,6 +20,15 @@ maintainers = [
 dependencies = [
 ]
 
+[project.optional-dependencies]
+dev = [
+  "djhtml",
+  "pytest",
+  "pytest-cov",
+  "pytest-django",
+  "ruff",
+]
+
 [project.entry-points."pretalx.plugin"]
 pretalx_broadcast_tools = "pretalx_broadcast_tools:PretalxPluginMeta"
 
@@ -39,6 +48,30 @@ version = {attr = "pretalx_broadcast_tools.__version__"}
 
 [tool.setuptools.packages.find]
 include = ["pretalx*"]
+
+[tool.check-manifest]
+ignore = [".*", "tests/*", "justfile"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "pretalx.common.settings.test_settings"
+django_find_project = false
+addopts = "--cov=pretalx_broadcast_tools --cov-report=term-missing:skip-covered --cov-config=pyproject.toml"
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+source = ["pretalx_broadcast_tools"]
+omit = ["*/migrations/*", "*/urls.py", "*/tests/*"]
+
+[tool.coverage.report]
+exclude_also = [
+  "def __repr__",
+  "def __str__",
+  "if settings.DEBUG",
+  "NOQA",
+  "noqa",
+  "NotImplementedError",
+]
 
 [tool.ruff]
 line-length = 120
