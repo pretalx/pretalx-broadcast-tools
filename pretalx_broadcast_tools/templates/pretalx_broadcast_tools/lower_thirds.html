@@ -3,19 +3,21 @@
 <html>
     <head>
         <meta http-equiv="content-type" content="text/html" charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>{{ request.event.name }} lower thirds</title>
-        <script defer src="{% static "pretalx_broadcast_tools/generic.js" %}"></script>
-        <script defer src="{% static "pretalx_broadcast_tools/lower_thirds.js" %}"></script>
-        <link rel="stylesheet" href="{% static "pretalx_broadcast_tools/frontend.css" %}" />
+        <script defer src="{% static 'pretalx_broadcast_tools/generic.js' %}"></script>
+        <script defer src="{% static 'pretalx_broadcast_tools/lower_thirds.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'pretalx_broadcast_tools/frontend.css' %}">
         {% if request.event and request.event.custom_css %}
-            <link rel="stylesheet" type="text/css" href="{{ request.event.custom_css.url }}"/>
+            <link rel="stylesheet" type="text/css" href="{{ request.event.custom_css.url }}">
         {% endif %}
     </head>
     <body id="broadcast_tools_lower_thirds">
         <div id="broadcast_tools_lower_thirds_box">
             <p id="broadcast_tools_lower_thirds_title">Loading ...</p>
-            <p id="broadcast_tools_lower_thirds_speaker">Content should appear soon. If not, please verify you have Javascript enabled.</p>
+            <p id="broadcast_tools_lower_thirds_speaker">
+                Content should appear soon. If not, please verify you have Javascript enabled.
+            </p>
             <p id="broadcast_tools_lower_thirds_infoline"></p>
         </div>
     </body>

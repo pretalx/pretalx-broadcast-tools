@@ -1,10 +1,15 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 set positional-arguments
 
-# Format Django templates with djhtml
+# Format Django templates with djangofmt.
 [group('linting')]
-djhtml *args="":
-    find . -name "*.html" -not -path '*/.venv/*' -not -path '*/vendored/*' -not -path '*/node_modules/*' -not -path '*/htmlcov/*' -not -path '*dist/*' -not -path "*.min.html" -print | xargs uv run --extra=dev djhtml "$@"
+djangofmt *args="":
+    -uv run --extra=dev djangofmt {{ args }} .
+
+[group('linting')]
+djangofmt-check:
+    just djangofmt
+    git diff --exit-code -- '*.html' || (echo "HTML templates are not formatted. Run 'just djangofmt' to fix." && exit 1)
 
 # Run ruff format
 [group('linting')]
@@ -19,16 +24,11 @@ check *args=".":
 # Run all formatters and linters
 [group('linting')]
 [parallel]
-fmt: format (check "--fix") djhtml
-
-# Check Django templates with djhtml (check only)
-[group('linting')]
-djhtml-check:
-    just djhtml --check
+fmt: format (check "--fix") djangofmt
 
 # Run all code quality checks
 [group('linting')]
-fmt-check: (format "--check") check djhtml-check
+fmt-check: (format "--check") check djangofmt-check
 
 # Run tests (installs pretalx if not already present)
 [group('testing')]

@@ -3,20 +3,22 @@
 <html>
     <head>
         <meta http-equiv="content-type" content="text/html" charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>{{ request.event.name }} room info</title>
-        <script defer src="{% static "pretalx_broadcast_tools/generic.js" %}"></script>
-        <script defer src="{% static "pretalx_broadcast_tools/room_info.js" %}"></script>
-        <link rel="stylesheet" href="{% static "pretalx_broadcast_tools/frontend.css" %}" />
+        <script defer src="{% static 'pretalx_broadcast_tools/generic.js' %}"></script>
+        <script defer src="{% static 'pretalx_broadcast_tools/room_info.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'pretalx_broadcast_tools/frontend.css' %}">
         {% if request.event and request.event.custom_css %}
-            <link rel="stylesheet" type="text/css" href="{{ request.event.custom_css.url }}"/>
+            <link rel="stylesheet" type="text/css" href="{{ request.event.custom_css.url }}">
         {% endif %}
     </head>
     <body id="broadcast_tools_room_info">
         <div id="broadcast_tools_room_info_header">
             <h1 id="broadcast_tools_room_info_roomname"></h1>
             <h2 id="broadcast_tools_room_info_title">Loading ...</h2>
-            <h3 id="broadcast_tools_room_info_speaker">Content should appear soon. If not, please verify you have Javascript enabled.</h3>
+            <h3 id="broadcast_tools_room_info_speaker">
+                Content should appear soon. If not, please verify you have Javascript enabled.
+            </h3>
         </div>
         <div id="broadcast_tools_room_info_qr"></div>
     </body>

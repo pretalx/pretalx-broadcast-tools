@@ -39,8 +39,8 @@ jobs:
         run: ruff format --check .
       - name: Run ruff lint check
         run: ruff check .
-  djhtml:
-    name: djhtml
+  djangofmt:
+    name: djangofmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -59,9 +59,11 @@ jobs:
       - name: Install pretalx
         run: pip3 install pretalx
       - name: Install Dependencies
-        run: pip3 install djhtml -Ue .
-      - name: Run djhtml
-        run: find -name "*.html" | xargs djhtml -c
+        run: pip3 install djangofmt -Ue .
+      - name: Run djangofmt
+        run: |
+          djangofmt .
+          git diff --exit-code -- '*.html'
         working-directory: .
 #  packaging:
 #    name: packaging

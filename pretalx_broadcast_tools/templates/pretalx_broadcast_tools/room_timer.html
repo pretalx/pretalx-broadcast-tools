@@ -3,13 +3,13 @@
 <html>
     <head>
         <meta http-equiv="content-type" content="text/html" charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>{{ request.event.name }} room timer</title>
-        <script defer src="{% static "pretalx_broadcast_tools/generic.js" %}"></script>
-        <script defer src="{% static "pretalx_broadcast_tools/room_timer.js" %}"></script>
-        <link rel="stylesheet" href="{% static "pretalx_broadcast_tools/frontend.css" %}" />
+        <script defer src="{% static 'pretalx_broadcast_tools/generic.js' %}"></script>
+        <script defer src="{% static 'pretalx_broadcast_tools/room_timer.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'pretalx_broadcast_tools/frontend.css' %}">
         {% if request.event and request.event.custom_css %}
-            <link rel="stylesheet" type="text/css" href="{{ request.event.custom_css.url }}"/>
+            <link rel="stylesheet" type="text/css" href="{{ request.event.custom_css.url }}">
         {% endif %}
     </head>
     <body id="broadcast_tools_room_timer">
@@ -21,7 +21,8 @@
         </div>
         <div id="broadcast_tools_room_timer_eventbar">
             <div id="broadcast_tools_room_timer_eventbar_fill"></div>
-            <span id="broadcast_tools_room_timer_eventbar_text">Content should appear soon. If not, please verify you have Javascript enabled.</span>
+            <span id="broadcast_tools_room_timer_eventbar_text"
+            >Content should appear soon. If not, please verify you have Javascript enabled.</span>
         </div>
     </body>
 </html>

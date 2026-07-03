@@ -22,7 +22,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "djhtml",
+  "djangofmt",
   "pytest",
   "pytest-cov",
   "pytest-django",
