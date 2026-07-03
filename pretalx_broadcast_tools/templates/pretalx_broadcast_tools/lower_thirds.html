@@ -8,8 +8,8 @@
         <script defer src="{% static 'pretalx_broadcast_tools/generic.js' %}"></script>
         <script defer src="{% static 'pretalx_broadcast_tools/lower_thirds.js' %}"></script>
         <link rel="stylesheet" href="{% static 'pretalx_broadcast_tools/frontend.css' %}">
-        {% if request.event and request.event.custom_css %}
-            <link rel="stylesheet" type="text/css" href="{{ request.event.custom_css.url }}">
+        {% if request.event and request.event.has_custom_styles %}
+            <link rel="stylesheet" type="text/css" href="{{ request.event.urls.settings_css }}">
         {% endif %}
     </head>
     <body id="broadcast_tools_lower_thirds">

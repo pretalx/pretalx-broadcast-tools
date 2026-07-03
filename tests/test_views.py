@@ -1,4 +1,5 @@
 import pytest
+from django.core.files.base import ContentFile
 from django.urls import reverse
 from django_scopes import scopes_disabled
 from i18nfield.strings import LazyI18nString
@@ -143,6 +144,11 @@ def test_schedule_json_generic_error(client, event, schedule):
     ("lowerthirds", "room_info", "room_timer"),
 )
 def test_static_html_views(client, event, name):
+    with scopes_disabled():
+        event.primary_color = None
+        event.custom_css.save("custom.css", ContentFile(b"body { background: #abcdef; }"))
+        assert event.has_custom_styles
+
     response = client.get(
         reverse(
             f"plugins:pretalx_broadcast_tools:{name}",
@@ -150,6 +156,7 @@ def test_static_html_views(client, event, name):
         )
     )
     assert response.status_code == 200
+    assert f'<link rel="stylesheet" type="text/css" href="{event.urls.settings_css}">' in response.content.decode()
 
 
 @pytest.mark.django_db
