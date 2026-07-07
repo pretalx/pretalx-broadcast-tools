@@ -7,20 +7,20 @@ msgstr ""
 "Project-Id-Version: 2.4.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-13 06:37+0100\n"
-"PO-Revision-Date: 2024-11-13 05:41+0000\n"
-"Last-Translator: Franziska <pretalx@kunsmann.eu>\n"
-"Language-Team: German <http://translate.pretalx.com/projects/"
-"pretalx-plugin-broadcast-tools/pretalx-plugin-broadcast-tools/de/>\n"
+"PO-Revision-Date: 2026-07-07 19:00+0000\n"
+"Last-Translator: Tobias Kunze <r@rixx.de>\n"
+"Language-Team: German <https://translate.pretalx.com/projects/pretalx-plugin-"
+"broadcast-tools/pretalx-plugin-broadcast-tools/de/>\n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.6.2\n"
+"X-Generator: Weblate 2026.7\n"
 
 #: apps.py:12
 msgid "Broadcasting Tools"
-msgstr ""
+msgstr "Broadcasting Tools"
 
 #: apps.py:15
 msgid ""
@@ -177,7 +177,7 @@ msgstr "Leider läuft aktuell kein Vortrag"
 
 #: signals.py:27
 msgid "broadcast tools"
-msgstr ""
+msgstr "Broadcast-Tools"
 
 #: templates/pretalx_broadcast_tools/orga.html:8
 msgid "broadcasting tools"
