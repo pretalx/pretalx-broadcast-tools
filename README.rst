@@ -72,6 +72,36 @@ Development setup
    this repository for your events by enabling it in the 'plugins' tab
    in the settings.
 
+Development commands
+~~~~~~~~~~~~~~~~~~~~
+
+This plugin uses `just`_ as a task runner and `uv`_ for dependency management.
+Run ``just`` with no arguments to list every available command. The most useful ones
+are:
+
+``just fmt``
+    Auto-format and lint the code.
+
+``just test``
+    Run the full test suite with pytest.
+
+Installing pretalx
+~~~~~~~~~~~~~~~~~~~~
+
+The tests need pretalx installed in the environment. ``just test`` handles this for
+you: if pretalx cannot be imported, it installs the latest version from git before
+running the test suite.
+
+If you already have a development version of pretalx around (for example if you want
+to test your changes against a specific commit or branch of pretalx), you can also
+install pretalx up front yourself:
+
+``just install-pretalx-local /path/to/pretalx``
+    Install pretalx from a local checkout as an editable install.
+
+``just install-pretalx``
+    Install the latest pretalx from git (runs before tests if no pretalx is installed).
+
 
 License
 -------
@@ -83,4 +113,6 @@ Released under the terms of the Apache License 2.0
 
 .. _pretalx: https://github.com/pretalx/pretalx
 .. _pretalx development setup: https://docs.pretalx.org/en/latest/developer/setup.html
+.. _just: https://just.systems/
+.. _uv: https://docs.astral.sh/uv/
 .. _OBS Studio: https://obsproject.com/
