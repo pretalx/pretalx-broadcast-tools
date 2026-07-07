@@ -55,6 +55,7 @@ ignore = [".*", "tests/*", "justfile"]
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "pretalx.common.settings.test_settings"
 django_find_project = false
+testpaths = "tests"
 addopts = "--cov=pretalx_broadcast_tools --cov-report=term-missing:skip-covered --cov-config=pyproject.toml"
 
 [tool.coverage.run]
