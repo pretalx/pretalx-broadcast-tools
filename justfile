@@ -1,12 +1,10 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
-set fallback := true
+set quiet
+set fallback
 set positional-arguments
+set default-list
 
 uv_dev := "uv run --frozen --extra=dev"
-
-[private]
-default:
-    @just --list
 
 # Run ruff format
 [group('linting')]
@@ -31,23 +29,23 @@ djangofmt-check:
 # Run all formatters and linters
 [group('linting')]
 [parallel]
-fmt: format (check "--fix") djangofmt && _fmt-done
+fmt: format (check "--fix") djangofmt && fmt-done
 
 [private]
-@_fmt-done:
+fmt-done:
     echo '{{ GREEN }}Formatting complete{{ NORMAL }}'
 
 # Run all code quality checks
 [group('linting')]
-fmt-check: (format "--check") check djangofmt-check && _check-done
+fmt-check: (format "--check") check djangofmt-check && check-done
 
 [private]
-@_check-done:
+check-done:
     echo '{{ GREEN }}All checks passed{{ NORMAL }}'
 
 # Run tests (installs pretalx if not already present)
 [group('tests')]
-test *args: _ensure-pretalx
+test *args: ensure-pretalx
     {{ uv_dev }} pytest "$@"
 
 # Install pretalx from git
@@ -62,17 +60,17 @@ install-pretalx-local path:
 
 # Ensure pretalx is importable, installing it from git if needed
 [private]
-_ensure-pretalx:
+ensure-pretalx:
     {{ uv_dev }} python -c "import pretalx" 2>/dev/null || just install-pretalx
 
 # Generate locale files
 [group('development')]
-localegen: _ensure-pretalx
-    #!/usr/bin/env bash
+[script('bash')]
+localegen: ensure-pretalx
     module=$(find . -maxdepth 1 -type d -name 'pretalx_*' -not -name '*.egg-info' | head -1)
     {{ uv_dev }} django-admin makemessages --add-location file -i build -i dist -i "*egg*" $(find "$module/locale/" -mindepth 1 -maxdepth 1 -type d -printf "-l %f " 2>/dev/null)
 
 # Compile locale files
 [group('development')]
-localecompile: _ensure-pretalx
+localecompile: ensure-pretalx
     {{ uv_dev }} django-admin compilemessages
