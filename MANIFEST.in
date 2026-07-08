@@ -5,3 +5,5 @@ recursive-include pretalx_broadcast_tools *.py
 recursive-include pretalx_broadcast_tools/locale *
 recursive-include pretalx_broadcast_tools/static *
 recursive-include pretalx_broadcast_tools/templates *
+include justfile
+include uv.lock
