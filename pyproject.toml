@@ -1,24 +1,20 @@
 [project]
 name = "pretalx-broadcast-tools"
 dynamic = ["version"]
-description = """
-Some tools which can be used for supporting a broadcasting software.
-This currently includes a generator for PDF printouts, a 'lower thirds'
-endpoint, and a full-screen webpage showing information about the
-currently running talk.
-"""
+description = "Lower thirds, room info screens and PDF printouts for broadcasting software."
 readme = "README.rst"
 license = {text = "Apache Software License"}
 keywords = ["pretalx"]
 authors = [
-    {name = "Franziska Kunsmann", email = "git@kunsmann.eu"},
+  {name = "Franziska Kunsmann", email = "git@kunsmann.eu"},
 ]
 maintainers = [
-    {name = "Franziska Kunsmann", email = "git@kunsmann.eu"},
+  {name = "Franziska Kunsmann", email = "git@kunsmann.eu"},
+  {name = "Tobias Kunze", email = "r@rixx.de"},
 ]
 
-dependencies = [
-]
+requires-python = ">=3.11"
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
@@ -29,16 +25,16 @@ dev = [
   "ruff",
 ]
 
+[project.urls]
+homepage = "https://github.com/pretalx/pretalx-broadcast-tools"
+repository = "https://github.com/pretalx/pretalx-broadcast-tools.git"
+
 [project.entry-points."pretalx.plugin"]
 pretalx_broadcast_tools = "pretalx_broadcast_tools:PretalxPluginMeta"
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel"]
-
-[project.urls]
-homepage = "https://github.com/Kunsi/pretalx-plugin-broadcast-tools"
-repository = "https://github.com/Kunsi/pretalx-plugin-broadcast-tools.git"
+requires = ["setuptools"]
 
 [tool.setuptools]
 include-package-data = true
@@ -74,11 +70,64 @@ exclude_also = [
   "NotImplementedError",
 ]
 
-[tool.ruff]
-line-length = 120
+[tool.ruff.format]
+skip-magic-trailing-comma = true
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I"]
+select = ["ALL"]
+ignore = [
+  "ANN",     # We do not do annotations
+  "ARG",     # Unused method arguments are often ok
+  "C901",    # We do do complexity
+  "COM812",  # Trailing commas are formatter territory
+  "D",       # We do not enforce docstyles
+  "DJ001",   # We live in a state of sin
+  "E501",    # Long lines are formatter territory
+  "EM",      # Formatting strings is fine, actually
+  "FBT",     # Booleans are fine, actually
+  "FIX",     # TODO comments are fine, actually
+  "PLR",     # Refactoring: Too many branches, arguments, statements, etc
+  "RET502",  # Just returning is fine, actually
+  "RET503",  # Just not returning is fine, actually
+  "RUF012",  # Mutable default in class attribute is just how django rolls
+  "RUF100",  # Unused noqa; problematic when run in isolation
+  "TRY003",  # Error messages are fine, actually
+]
+allowed-confusables = ["–", "'", "×"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**.py" = [
+  "DTZ",     # TODO: do not use naive datetimes in tests
+  "INP001",  # Tests don't need __init__.py
+  "RUF",     # Ignore ambiguous characters in tests, may be security tests
+  "S",       # Tests do not need cryptographic randomness and other security features
+  "S101",    # Ignore `assert` rules in tests
+  "SLF001",  # TODO: remove SLF001, fix private access
+  "TRY",     # Exception handling is special in tests
+]
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-values-type = "tuple"
+
+[tool.ruff.lint.flake8-self]
+extend-ignore-names = ["_base_manager", "_default_manager",  "_meta"]
 
 [tool.ruff.lint.isort]
-known-third-party = ["pretalx"]
+split-on-trailing-comma = false
+section-order = ["future", "standard-library", "third-party", "pretalx", "first-party", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+pretalx = ["pretalx"]
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = [
+  "allDay",
+  "api_urls",
+  "EventSettings",
+  "extendMarkdown",
+  "get_allDay",
+  "orga_urls",
+  "SendMailException",
+  "setUpTestData",
+  "urls",
+]

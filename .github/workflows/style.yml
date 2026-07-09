@@ -4,95 +4,51 @@ on:
   push:
     branches: [ main ]
     paths-ignore:
-      - 'pretalx_lower_thirds/locale/**'
-      - 'pretalx_lower_thirds/static/**'
+      - 'pretalx_broadcast_tools/locale/**'
+      - 'pretalx_broadcast_tools/static/**'
   pull_request:
     branches: [ main ]
     paths-ignore:
-      - 'pretalx_lower_thirds/locale/**'
-      - 'pretalx_lower_thirds/static/**'
+      - 'pretalx_broadcast_tools/locale/**'
+      - 'pretalx_broadcast_tools/static/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
-  ruff:
-    name: ruff
+  style:
+    name: Code style
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: install gettext
-        run: sudo apt install gettext
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-          python-version: 3.12
-      - uses: actions/cache@v4
+          python-version-file: ".github/workflows/python-version.txt"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - name: Install pretalx
-        run: pip3 install pretalx
-      - name: Install Dependencies
-        run: pip3 install ruff -Ue .
-      - name: Run ruff format check
-        run: ruff format --check .
-      - name: Run ruff lint check
-        run: ruff check .
-  djangofmt:
-    name: djangofmt
+          enable-cache: true
+      - uses: extractions/setup-just@v3
+      - name: Run linters
+        run: just fmt-check
+  packaging:
+    name: packaging
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: install gettext
-        run: sudo apt install gettext
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-          python-version: 3.12
-      - uses: actions/cache@v4
+          python-version-file: ".github/workflows/python-version.txt"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - name: Install pretalx
-        run: pip3 install pretalx
+          enable-cache: true
       - name: Install Dependencies
-        run: pip3 install djangofmt -Ue .
-      - name: Run djangofmt
-        run: |
-          djangofmt .
-          git diff --exit-code -- '*.html'
-        working-directory: .
-#  packaging:
-#    name: packaging
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - name: install gettext
-#        run: sudo apt install gettext
-#      - name: Set up Python 3.12
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: 3.12
-#      - uses: actions/cache@v4
-#        with:
-#          path: ~/.cache/pip
-#          key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
-#          restore-keys: |
-#            ${{ runner.os }}-pip-
-#      - name: Install pretalx
-#        run: pip3 install pretalx
-#      - name: Install Dependencies
-#        run: pip3 install twine check-manifest -Ue .
-#      - name: Run check-manifest
-#        run: check-manifest .
-#        working-directory: .
-#      - name: Build package
-#        run: python setup.py sdist
-#        working-directory: .
-#      - name: Check package
-#        run: twine check dist/*
-#        working-directory: .
-#
+        run: uv pip install --system twine check-manifest build -e .
+      - name: Run check-manifest
+        run: check-manifest .
+      - name: Build package
+        run: python -m build
+      - name: Check package
+        run: twine check dist/*

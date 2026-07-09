@@ -1,9 +1,9 @@
-include Makefile
-include *.md
-recursive-include img *.png
-recursive-include pretalx_broadcast_tools *.py
-recursive-include pretalx_broadcast_tools/locale *
 recursive-include pretalx_broadcast_tools/static *
 recursive-include pretalx_broadcast_tools/templates *
+exclude pretalx_broadcast_tools/locale/django.pot
+recursive-exclude assets *.png
+recursive-include pretalx_broadcast_tools/locale *
+recursive-include pretalx_broadcast_tools *.py
+include CHANGELOG.md
 include justfile
 include uv.lock

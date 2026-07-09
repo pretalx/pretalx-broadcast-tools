@@ -59,18 +59,14 @@ Development setup
 
 1. Make sure that you have a working `pretalx development setup`_.
 
-2. Clone this repository, eg to ``local/pretalx-plugin-lower-thirds``.
+2. Clone this repository, eg to ``local/pretalx-broadcast-tools``.
 
 3. Activate the virtual environment you use for pretalx development.
 
-4. Execute ``python -m pip install -e .`` within this directory to register
-   this application with pretalx's plugin registry.
+4. Run ``pip install -e .`` within this directory to register this application with pretalx's plugin registry.
 
-5. Execute ``make`` within this directory to compile translations.
-
-6. Restart your local pretalx server. You can now use the plugin from
-   this repository for your events by enabling it in the 'plugins' tab
-   in the settings.
+5. Restart your local pretalx server. This plugin should show up in the plugin list shown on startup in the console.
+   You can now use the plugin from this repository for your events by enabling it in the 'plugins' tab in the settings.
 
 Development commands
 ~~~~~~~~~~~~~~~~~~~~
