@@ -1,6 +1,10 @@
 Pretalx: Broadcast Tools (and more)
 ===================================
 
+.. image:: https://img.shields.io/pypi/v/pretalx-broadcast-tools.svg
+   :target: https://pypi.org/project/pretalx-broadcast-tools/
+   :alt: PyPI version
+
 .. image:: http://translate.pretalx.com/widget/pretalx-plugin-broadcast-tools/pretalx-plugin-broadcast-tools/svg-badge.svg
     :alt: Translation status
     :target: http://translate.pretalx.com/engage/pretalx-plugin-broadcast-tools/
@@ -53,6 +57,20 @@ paradigm" by "Michael Rodriguez".
          Also you can find answers to select questions and notes entered
          inside pretalx on the pdf export. In this screenshot most info
          has been extended by adding lots of "lorem ipsum" text.
+
+Installation
+------------
+
+Install the plugin with pip, in the same environment as your pretalx
+installation::
+
+    (env)$ python -m pip install pretalx-broadcast-tools
+
+Afterwards, run ``migrate`` and ``rebuild`` and restart your pretalx services,
+just like after any pretalx update (see `performing updates`_ in the
+administrator documentation).
+
+You can then enable the plugin under "Settings → Plugins" in your event settings.
 
 Development setup
 -----------------
@@ -111,4 +129,5 @@ Released under the terms of the Apache License 2.0
 .. _pretalx development setup: https://docs.pretalx.org/en/latest/developer/setup.html
 .. _just: https://just.systems/
 .. _uv: https://docs.astral.sh/uv/
+.. _performing updates: https://docs.pretalx.org/administrator/maintenance/#performing-updates
 .. _OBS Studio: https://obsproject.com/
