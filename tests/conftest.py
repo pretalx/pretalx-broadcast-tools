@@ -3,6 +3,7 @@ import datetime as dt
 import pytest
 from django.core import management
 from django_scopes import scopes_disabled
+
 from pretalx.event.domain.event import initialise_event
 from pretalx.event.domain.plugins import enable_plugin
 from pretalx.event.models import Event, Organiser, Team
@@ -75,8 +76,12 @@ def event(organiser):
 @pytest.fixture
 def orga_user(event):
     with scopes_disabled():
-        user = User.objects.create_user(password="orgapassw0rd", email="orgauser@orga.org", name="Orga User")
-        team = event.organiser.teams.filter(can_change_organiser_settings=True, is_reviewer=False).first()
+        user = User.objects.create_user(
+            password="orgapassw0rd", email="orgauser@orga.org", name="Orga User"
+        )
+        team = event.organiser.teams.filter(
+            can_change_organiser_settings=True, is_reviewer=False
+        ).first()
         team.members.add(user)
         team.save()
     return user
@@ -85,8 +90,12 @@ def orga_user(event):
 @pytest.fixture
 def review_user(event):
     with scopes_disabled():
-        user = User.objects.create_user(password="reviewpassw0rd", email="reviewuser@orga.org", name="Review User")
-        team = event.organiser.teams.filter(can_change_organiser_settings=False, is_reviewer=True).first()
+        user = User.objects.create_user(
+            password="reviewpassw0rd", email="reviewuser@orga.org", name="Review User"
+        )
+        team = event.organiser.teams.filter(
+            can_change_organiser_settings=False, is_reviewer=True
+        ).first()
         team.members.add(user)
         team.save()
     return user
@@ -121,7 +130,9 @@ def submission_type(event):
     with scopes_disabled():
         sub_type = SubmissionType.objects.filter(event=event).first()
         if not sub_type:
-            sub_type = SubmissionType.objects.create(event=event, name="Talk", default_duration=60)
+            sub_type = SubmissionType.objects.create(
+                event=event, name="Talk", default_duration=60
+            )
         return sub_type
 
 
@@ -129,9 +140,7 @@ def submission_type(event):
 def speaker(event):
     with scopes_disabled():
         return User.objects.create_user(
-            password="speakerpassw0rd",
-            email="speaker@example.org",
-            name="Jane Speaker",
+            password="speakerpassw0rd", email="speaker@example.org", name="Jane Speaker"
         )
 
 
@@ -179,7 +188,9 @@ def speaker_question(event, submission):
             position=1,
         )
         for profile in submission.speakers.all():
-            Answer.objects.create(question=question, speaker=profile, answer="Doing great.")
+            Answer.objects.create(
+                question=question, speaker=profile, answer="Doing great."
+            )
         return question
 
 

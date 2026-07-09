@@ -1,7 +1,8 @@
 from django.views.generic import FormView
+
 from pretalx.common.views.mixins import PermissionRequired
 
-from ..forms import BroadcastToolsSettingsForm
+from pretalx_broadcast_tools.forms import BroadcastToolsSettingsForm
 
 
 class BroadcastToolsOrgaView(PermissionRequired, FormView):

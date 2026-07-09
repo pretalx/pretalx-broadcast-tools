@@ -1,7 +1,12 @@
 import datetime as dt
+from tempfile import NamedTemporaryFile
 
 import pytest
 from django_scopes import scope, scopes_disabled
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import PageBreak, SimpleDocTemplate
+
+from pretalx.person.models import User
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.models import TalkSlot
 from pretalx.submission.domain.submission import add_speaker
@@ -14,10 +19,12 @@ from pretalx_broadcast_tools.exporter import PDFExporter, PDFInfoPage
 @pytest.fixture
 def rich_schedule(event, submission_type, room):
     with scopes_disabled():
-        track = Track.objects.create(event=event, name="Coloured Track", color="#123456")
-        from pretalx.person.models import User
-
-        spk = User.objects.create_user(password="x", email="spk@example.org", name="Spk Name")
+        track = Track.objects.create(
+            event=event, name="Coloured Track", color="#123456"
+        )
+        spk = User.objects.create_user(
+            password="x", email="spk@example.org", name="Spk Name"
+        )
 
         sub_a = Submission.objects.create(
             title="Full Talk: with a colon and a very longwordthatdoesnotfiteasily here",
@@ -71,11 +78,19 @@ def rich_schedule(event, submission_type, room):
             target=QuestionTarget.SPEAKER,
             position=3,
         )
-        Answer.objects.create(question=q_included, submission=sub_a, answer="included answer")
-        Answer.objects.create(question=q_excluded, submission=sub_a, answer="excluded answer")
+        Answer.objects.create(
+            question=q_included, submission=sub_a, answer="included answer"
+        )
+        Answer.objects.create(
+            question=q_excluded, submission=sub_a, answer="excluded answer"
+        )
         profile = sub_a.speakers.first()
-        Answer.objects.create(question=q_spk_included, speaker=profile, answer="spk included")
-        Answer.objects.create(question=q_spk_excluded, speaker=profile, answer="spk excluded")
+        Answer.objects.create(
+            question=q_spk_included, speaker=profile, answer="spk included"
+        )
+        Answer.objects.create(
+            question=q_spk_excluded, speaker=profile, answer="spk excluded"
+        )
 
         for sub in (sub_a, sub_b):
             TalkSlot.objects.create(
@@ -88,7 +103,9 @@ def rich_schedule(event, submission_type, room):
             )
         freeze_schedule(event.wip_schedule, name="v1")
 
-        event.settings.broadcast_tools_pdf_questions_to_include = f"{q_included.id},{q_spk_included.id}"
+        event.settings.broadcast_tools_pdf_questions_to_include = (
+            f"{q_included.id},{q_spk_included.id}"
+        )
         event.settings.broadcast_tools_pdf_show_internal_notes = True
         event.settings.broadcast_tools_pdf_additional_content = "{CODE} - {TALK_SLUG}"
     return event
@@ -152,11 +169,6 @@ class _NoLocalTalk:
 
 @pytest.mark.django_db
 def test_pdf_info_page_without_local_start(rich_schedule):
-    from tempfile import NamedTemporaryFile
-
-    from reportlab.lib.pagesizes import A4
-    from reportlab.platypus import PageBreak, SimpleDocTemplate
-
     event = rich_schedule
     with scope(event=event):
         exporter = PDFExporter(event, schedule=event.current_schedule)

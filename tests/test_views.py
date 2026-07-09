@@ -1,16 +1,28 @@
 import pytest
 from django.core.files.base import ContentFile
 from django.urls import reverse
-from django_scopes import scopes_disabled
+from django_scopes import scope, scopes_disabled
 from i18nfield.strings import LazyI18nString
+
+from pretalx.schedule.domain.release import freeze_schedule
+from pretalx.schedule.models import TalkSlot
+from pretalx.submission.models import Submission
+
+from pretalx_broadcast_tools.management.commands.export_voctomix_lower_thirds import (
+    get_export_path,
+    get_export_targz_path,
+)
+from pretalx_broadcast_tools.views.qr import (
+    BroadcastToolsFeedbackQrCodeSvg,
+    BroadcastToolsPublicQrCodeSvg,
+)
 
 
 @pytest.mark.django_db
 def test_event_info(client, event, room):
     response = client.get(
         reverse(
-            "plugins:pretalx_broadcast_tools:event_info",
-            kwargs={"event": event.slug},
+            "plugins:pretalx_broadcast_tools:event_info", kwargs={"event": event.slug}
         )
     )
     assert response.status_code == 200
@@ -31,8 +43,7 @@ def test_event_info_default_color_and_next_talk(client, event):
         event.settings.broadcast_tools_room_info_lower_content = "public_qr"
     response = client.get(
         reverse(
-            "plugins:pretalx_broadcast_tools:event_info",
-            kwargs={"event": event.slug},
+            "plugins:pretalx_broadcast_tools:event_info", kwargs={"event": event.slug}
         )
     )
     assert response.status_code == 200
@@ -46,8 +57,7 @@ def test_event_info_default_color_and_next_talk(client, event):
 def test_schedule_json(client, event, schedule, submission):
     response = client.get(
         reverse(
-            "plugins:pretalx_broadcast_tools:schedule",
-            kwargs={"event": event.slug},
+            "plugins:pretalx_broadcast_tools:schedule", kwargs={"event": event.slug}
         )
     )
     assert response.status_code == 200
@@ -63,11 +73,12 @@ def test_schedule_json(client, event, schedule, submission):
 @pytest.mark.django_db
 def test_schedule_json_with_infoline(client, event, schedule):
     with scopes_disabled():
-        event.settings.broadcast_tools_lower_thirds_info_string = LazyI18nString("Code {CODE} / {TRACK_NAME_COLOURED}")
+        event.settings.broadcast_tools_lower_thirds_info_string = LazyI18nString(
+            "Code {CODE} / {TRACK_NAME_COLOURED}"
+        )
     response = client.get(
         reverse(
-            "plugins:pretalx_broadcast_tools:schedule",
-            kwargs={"event": event.slug},
+            "plugins:pretalx_broadcast_tools:schedule", kwargs={"event": event.slug}
         )
     )
     assert response.status_code == 200
@@ -78,10 +89,6 @@ def test_schedule_json_with_infoline(client, event, schedule):
 
 @pytest.mark.django_db
 def test_schedule_json_no_track(client, event, room, submission_type):
-    from pretalx.schedule.domain.release import freeze_schedule
-    from pretalx.schedule.models import TalkSlot
-    from pretalx.submission.models import Submission
-
     with scopes_disabled():
         sub = Submission.objects.create(
             title="No track talk",
@@ -102,8 +109,7 @@ def test_schedule_json_no_track(client, event, room, submission_type):
         freeze_schedule(event.wip_schedule, name="v1")
     response = client.get(
         reverse(
-            "plugins:pretalx_broadcast_tools:schedule",
-            kwargs={"event": event.slug},
+            "plugins:pretalx_broadcast_tools:schedule", kwargs={"event": event.slug}
         )
     )
     assert response.status_code == 200
@@ -116,8 +122,7 @@ def test_schedule_json_keyerror(client, event, schedule):
         event.settings.broadcast_tools_lower_thirds_info_string = "{DOESNOTEXIST}"
     response = client.get(
         reverse(
-            "plugins:pretalx_broadcast_tools:schedule",
-            kwargs={"event": event.slug},
+            "plugins:pretalx_broadcast_tools:schedule", kwargs={"event": event.slug}
         )
     )
     assert response.status_code == 200
@@ -130,8 +135,7 @@ def test_schedule_json_generic_error(client, event, schedule):
         event.settings.broadcast_tools_lower_thirds_info_string = "{0}"
     response = client.get(
         reverse(
-            "plugins:pretalx_broadcast_tools:schedule",
-            kwargs={"event": event.slug},
+            "plugins:pretalx_broadcast_tools:schedule", kwargs={"event": event.slug}
         )
     )
     assert response.status_code == 200
@@ -139,24 +143,23 @@ def test_schedule_json_generic_error(client, event, schedule):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "name",
-    ("lowerthirds", "room_info", "room_timer"),
-)
+@pytest.mark.parametrize("name", ("lowerthirds", "room_info", "room_timer"))
 def test_static_html_views(client, event, name):
     with scopes_disabled():
         event.primary_color = None
-        event.custom_css.save("custom.css", ContentFile(b"body { background: #abcdef; }"))
+        event.custom_css.save(
+            "custom.css", ContentFile(b"body { background: #abcdef; }")
+        )
         assert event.has_custom_styles
 
     response = client.get(
-        reverse(
-            f"plugins:pretalx_broadcast_tools:{name}",
-            kwargs={"event": event.slug},
-        )
+        reverse(f"plugins:pretalx_broadcast_tools:{name}", kwargs={"event": event.slug})
     )
     assert response.status_code == 200
-    assert f'<link rel="stylesheet" type="text/css" href="{event.urls.settings_css}">' in response.content.decode()
+    assert (
+        f'<link rel="stylesheet" type="text/css" href="{event.urls.settings_css}">'
+        in response.content.decode()
+    )
 
 
 @pytest.mark.django_db
@@ -187,13 +190,6 @@ def test_qr_views_unknown_talk(client, event, kind):
 
 @pytest.mark.django_db
 def test_qr_view_custom_domain(rf, event, submission, schedule):
-    from django_scopes import scope
-
-    from pretalx_broadcast_tools.views.qr import (
-        BroadcastToolsFeedbackQrCodeSvg,
-        BroadcastToolsPublicQrCodeSvg,
-    )
-
     with scopes_disabled():
         event.custom_domain = "https://talks.example.org"
         event.save()
@@ -204,20 +200,26 @@ def test_qr_view_custom_domain(rf, event, submission, schedule):
             BroadcastToolsPublicQrCodeSvg,
             BroadcastToolsFeedbackQrCodeSvg,
         ):
-            response = view_class.as_view()(request, event=event.slug, talk=submission.id)
+            response = view_class.as_view()(
+                request, event=event.slug, talk=submission.id
+            )
             assert response.status_code == 200
             assert response["Content-Type"] == "image/svg+xml"
 
 
 @pytest.mark.django_db
 def test_orga_view_get(orga_client, event):
-    response = orga_client.get(reverse("plugins:pretalx_broadcast_tools:orga", kwargs={"event": event.slug}))
+    response = orga_client.get(
+        reverse("plugins:pretalx_broadcast_tools:orga", kwargs={"event": event.slug})
+    )
     assert response.status_code == 200
 
 
 @pytest.mark.django_db
 def test_orga_view_forbidden_for_reviewer(review_client, event):
-    response = review_client.get(reverse("plugins:pretalx_broadcast_tools:orga", kwargs={"event": event.slug}))
+    response = review_client.get(
+        reverse("plugins:pretalx_broadcast_tools:orga", kwargs={"event": event.slug})
+    )
     assert response.status_code in (403, 404)
 
 
@@ -240,7 +242,10 @@ def test_orga_view_post(orga_client, event):
     )
     assert response.status_code == 200
     with scopes_disabled():
-        assert str(event.settings.broadcast_tools_lower_thirds_no_talk_info) == "Nothing here"
+        assert (
+            str(event.settings.broadcast_tools_lower_thirds_no_talk_info)
+            == "Nothing here"
+        )
         assert event.settings.broadcast_tools_lower_thirds_export_voctomix is True
 
 
@@ -257,11 +262,6 @@ def test_voctomix_download_missing(orga_client, event, schedule):
 
 @pytest.mark.django_db
 def test_voctomix_download_present(orga_client, event, schedule):
-    from pretalx_broadcast_tools.management.commands.export_voctomix_lower_thirds import (
-        get_export_path,
-        get_export_targz_path,
-    )
-
     with scopes_disabled():
         targz_path = get_export_targz_path(event)
         get_export_path(event).parent.mkdir(parents=True, exist_ok=True)

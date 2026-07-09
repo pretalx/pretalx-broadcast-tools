@@ -5,9 +5,12 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django_scopes import scope, scopes_disabled
 from i18nfield.strings import LazyI18nString
+
+from pretalx.person.models import User
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.enums import SlotType
 from pretalx.schedule.models import TalkSlot
+from pretalx.submission.domain.submission import add_speaker
 from pretalx.submission.models import Submission
 
 from pretalx_broadcast_tools.management.commands.export_voctomix_lower_thirds import (
@@ -112,16 +115,15 @@ def test_exporter_break_slot(event, submission, room, tmp_path):
 @pytest.mark.django_db
 def test_exporter_track_without_color(event, submission_type, room, tmp_path):
     with scopes_disabled():
-        from pretalx.person.models import User
-        from pretalx.submission.domain.submission import add_speaker
-
         sub = Submission.objects.create(
             title="Trackless",
             event=event,
             submission_type=submission_type,
             content_locale="en",
         )
-        spk = User.objects.create_user(password="x", email="s2@example.org", name="S Two")
+        spk = User.objects.create_user(
+            password="x", email="s2@example.org", name="S Two"
+        )
         add_speaker(sub, user=spk)
         sub.accept()
         sub.confirm()

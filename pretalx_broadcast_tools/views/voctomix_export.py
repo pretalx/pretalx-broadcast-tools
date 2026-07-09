@@ -1,5 +1,6 @@
 from django.http import FileResponse, Http404
 from django.views import View
+
 from pretalx.common.text.path import safe_filename
 from pretalx.common.views.mixins import EventPermissionRequired
 
@@ -20,7 +21,9 @@ class BroadcastToolsLowerThirdsVoctomixDownloadView(EventPermissionRequired, Vie
 
         targz_path = get_export_targz_path(self.request.event)
         if not targz_path.exists():
-            raise Http404()
-        response = FileResponse(open(targz_path, "rb"), as_attachment=True)
-        response["Content-Disposition"] = f"attachment; filename={safe_filename(targz_path.name)}"
+            raise Http404
+        response = FileResponse(targz_path.open("rb"), as_attachment=True)
+        response["Content-Disposition"] = (
+            f"attachment; filename={safe_filename(targz_path.name)}"
+        )
         return response

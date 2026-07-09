@@ -2,6 +2,10 @@ import pytest
 from django.urls import resolve, reverse
 from django_scopes import scope, scopes_disabled
 
+from pretalx.schedule.domain.release import freeze_schedule
+from pretalx.schedule.models import TalkSlot
+from pretalx.submission.models import Submission
+
 from pretalx_broadcast_tools.exporter import PDFExporter
 from pretalx_broadcast_tools.signals import navbar_info, register_data_exporter
 from pretalx_broadcast_tools.utils.placeholders import placeholders
@@ -9,7 +13,9 @@ from pretalx_broadcast_tools.utils.placeholders import placeholders
 
 @pytest.mark.django_db
 def test_navbar_info_for_orga(orga_user, event):
-    orga_url = reverse("plugins:pretalx_broadcast_tools:orga", kwargs={"event": event.slug})
+    orga_url = reverse(
+        "plugins:pretalx_broadcast_tools:orga", kwargs={"event": event.slug}
+    )
 
     class FakeRequest:
         user = orga_user
@@ -41,7 +47,9 @@ def test_navbar_info_inactive(orga_user, event):
 
 @pytest.mark.django_db
 def test_navbar_info_no_permission(review_user, event):
-    orga_url = reverse("plugins:pretalx_broadcast_tools:orga", kwargs={"event": event.slug})
+    orga_url = reverse(
+        "plugins:pretalx_broadcast_tools:orga", kwargs={"event": event.slug}
+    )
 
     class FakeRequest:
         user = review_user
@@ -79,10 +87,6 @@ def test_placeholders_with_track_no_html(event, submission, schedule):
 
 @pytest.mark.django_db
 def test_placeholders_without_track(event, room, submission_type):
-    from pretalx.schedule.domain.release import freeze_schedule
-    from pretalx.schedule.models import TalkSlot
-    from pretalx.submission.models import Submission
-
     with scopes_disabled():
         sub = Submission.objects.create(
             title="No track",

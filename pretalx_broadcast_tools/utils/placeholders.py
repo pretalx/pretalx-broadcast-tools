@@ -7,21 +7,15 @@ def placeholders(event, talk, supports_html_colour=False):
     result = {
         "CODE": talk.submission.code,
         "EVENT_SLUG": str(event.slug),
-        "FEEDBACK_URL": "{}{}".format(
-            event.custom_domain or settings.SITE_URL,
-            talk.submission.urls.feedback,
-        ),
+        "FEEDBACK_URL": f"{event.custom_domain or settings.SITE_URL}{talk.submission.urls.feedback}",
         "TALK_SLUG": talk.frab_slug,
-        "TALK_URL": "{}{}".format(
-            event.custom_domain or settings.SITE_URL,
-            talk.submission.urls.public,
-        ),
+        "TALK_URL": f"{event.custom_domain or settings.SITE_URL}{talk.submission.urls.public}",
         "TRACK_NAME": track_name,
     }
 
     if talk.submission.track and supports_html_colour:
-        result["TRACK_NAME_COLOURED"] = '<span style="color: {}">{}</span>'.format(
-            talk.submission.track.color, track_name
+        result["TRACK_NAME_COLOURED"] = (
+            f'<span style="color: {talk.submission.track.color}">{track_name}</span>'
         )
     else:
         result["TRACK_NAME_COLOURED"] = track_name

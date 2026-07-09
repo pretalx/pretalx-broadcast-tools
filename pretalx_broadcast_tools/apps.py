@@ -20,9 +20,8 @@ class PluginApp(AppConfig):
         version = __version__
         category = "FEATURE"
         settings_links = [
-            (gettext_lazy("Settings"), "plugins:pretalx_broadcast_tools:orga", {}),
+            (gettext_lazy("Settings"), "plugins:pretalx_broadcast_tools:orga", {})
         ]
 
     def ready(self):
-        from . import signals  # NOQA
-        from . import tasks  # NOQA
+        from . import signals, tasks  # noqa: F401, PLC0415 -- app ready

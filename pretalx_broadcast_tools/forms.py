@@ -6,7 +6,9 @@ from i18nfield.forms import I18nFormField, I18nFormMixin, I18nTextInput
 
 class BroadcastToolsSettingsForm(I18nFormMixin, HierarkeyForm):
     broadcast_tools_lower_thirds_no_talk_info = I18nFormField(
-        help_text=_("Will be shown as talk title if there's currently no talk running."),
+        help_text=_(
+            "Will be shown as talk title if there's currently no talk running."
+        ),
         label=_('"No talk running" information'),
         widget=I18nTextInput,
         required=True,
@@ -50,7 +52,9 @@ class BroadcastToolsSettingsForm(I18nFormMixin, HierarkeyForm):
         required=False,
     )
     broadcast_tools_room_info_show_next_talk = BooleanField(
-        help_text=_("If no talk is running in the room, show the time and title of the next talk in the room."),
+        help_text=_(
+            "If no talk is running in the room, show the time and title of the next talk in the room."
+        ),
         label=_("Show next talk"),
         required=False,
     )
@@ -63,7 +67,9 @@ class BroadcastToolsSettingsForm(I18nFormMixin, HierarkeyForm):
         required=False,
     )
     broadcast_tools_pdf_ignore_do_not_record = BooleanField(
-        help_text=_("If checked, 'do not record' talks will not generate a page in the pdf export."),
+        help_text=_(
+            "If checked, 'do not record' talks will not generate a page in the pdf export."
+        ),
         label=_("Ignore 'do not record' talks when generating pdf"),
         required=False,
     )

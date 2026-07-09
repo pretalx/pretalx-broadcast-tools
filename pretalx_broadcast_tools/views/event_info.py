@@ -7,12 +7,7 @@ from django.views import View
 
 def _compute_static_hash():
     base = pathlib.Path(__file__).parent.parent
-    files = sorted(
-        [
-            *base.glob("static/**/*.js"),
-            *base.glob("templates/**/*.html"),
-        ]
-    )
+    files = sorted([*base.glob("static/**/*.js"), *base.glob("templates/**/*.html")])
     h = hashlib.sha256()
     for f in files:
         h.update(f.read_bytes())
@@ -29,11 +24,14 @@ class BroadcastToolsEventInfoView(View):
             {
                 "color": color,
                 "name": self.request.event.name.localize(self.request.event.locale),
-                "no_talk": str(self.request.event.settings.broadcast_tools_lower_thirds_no_talk_info),
+                "no_talk": str(
+                    self.request.event.settings.broadcast_tools_lower_thirds_no_talk_info
+                ),
                 "room-info": {
-                    "lower_info": self.request.event.settings.broadcast_tools_room_info_lower_content or "",
-                    "show_next_talk": (
-                        True if self.request.event.settings.broadcast_tools_room_info_show_next_talk else False
+                    "lower_info": self.request.event.settings.broadcast_tools_room_info_lower_content
+                    or "",
+                    "show_next_talk": bool(
+                        self.request.event.settings.broadcast_tools_room_info_show_next_talk
                     ),
                 },
                 "rooms": {
@@ -46,5 +44,5 @@ class BroadcastToolsEventInfoView(View):
                 "timezone": str(self.request.event.tz),
                 "locale": self.request.event.locale,
                 "static_hash": _static_hash,
-            },
+            }
         )

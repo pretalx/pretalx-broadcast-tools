@@ -12,13 +12,19 @@ from pretalx.event.models import Event
 
 from pretalx_broadcast_tools.utils.placeholders import placeholders
 
+LOG = logging.getLogger(__name__)
+
 IMG_WIDTH = 1920  # px
 IMG_HEIGHT = 1080  # px
 
 FONT_SIZE_TITLE = 30  # px
 FONT_SIZE_SPEAKER = 25  # px
 FONT_SIZE_INFOLINE = 18  # px
-FONT_FILE = Path(__file__).resolve().parent.parent.parent / "assets" / "titilium-web-regular.ttf"
+FONT_FILE = (
+    Path(__file__).resolve().parent.parent.parent
+    / "assets"
+    / "titilium-web-regular.ttf"
+)
 
 BOX_PADDING = 10  # px
 
@@ -60,27 +66,19 @@ class VoctomixLowerThirdsExporter:
         self.infoline = event.settings.broadcast_tools_lower_thirds_info_string or ""
 
         self.font_title = ImageFont.truetype(
-            FONT_FILE,
-            size=FONT_SIZE_TITLE,
-            encoding="unic",
+            FONT_FILE, size=FONT_SIZE_TITLE, encoding="unic"
         )
         self.font_speaker = ImageFont.truetype(
-            FONT_FILE,
-            size=FONT_SIZE_SPEAKER,
-            encoding="unic",
+            FONT_FILE, size=FONT_SIZE_SPEAKER, encoding="unic"
         )
         self.font_infoline = ImageFont.truetype(
-            FONT_FILE,
-            size=FONT_SIZE_INFOLINE,
-            encoding="unic",
+            FONT_FILE, size=FONT_SIZE_INFOLINE, encoding="unic"
         )
 
     @staticmethod
     def _hex2rgb(hex_value):
         hex_value = hex_value.lstrip("#")
-        # black insists this should have spaces around the :, but flake8
-        # complains about spaces around the :, soooooo ....
-        return tuple(int(hex_value[i : i + 2], 16) for i in (0, 2, 4))  # NOQA
+        return tuple(int(hex_value[i : i + 2], 16) for i in (0, 2, 4))
 
     @staticmethod
     def _fit_text(input_text, font, max_width):
@@ -110,26 +108,15 @@ class VoctomixLowerThirdsExporter:
         if not isinstance(self.infoline, str):
             infoline = self.infoline.localize(self.event.locale)
 
-        infoline = infoline.format(
-            **placeholders(
-                self.event,
-                talk,
-            )
-        )
+        infoline = infoline.format(**placeholders(self.event, talk))
         _, _, w, _ = self.font_infoline.getbbox(infoline)
         return w, infoline
 
     def export_speaker(self, talk, speaker):
-        img = Image.new(
-            mode="RGBA",
-            size=(IMG_WIDTH, IMG_HEIGHT),
-            color=(0, 0, 0, 0),
-        )
+        img = Image.new(mode="RGBA", size=(IMG_WIDTH, IMG_HEIGHT), color=(0, 0, 0, 0))
 
         speaker_text = self._fit_text(
-            speaker.get_display_name(),
-            self.font_speaker,
-            BOX_WIDTH,
+            speaker.get_display_name(), self.font_speaker, BOX_WIDTH
         )
         infoline_width, infoline_text = self._get_infoline(talk)
 
@@ -161,10 +148,7 @@ class VoctomixLowerThirdsExporter:
 
         for line in speaker_text:
             draw.text(
-                (BOX_LEFT, y_pos),
-                line,
-                font=self.font_speaker,
-                fill=(255, 255, 255),
+                (BOX_LEFT, y_pos), line, font=self.font_speaker, fill=(255, 255, 255)
             )
             y_pos += FONT_SIZE_SPEAKER
 
@@ -179,21 +163,21 @@ class VoctomixLowerThirdsExporter:
         filename = self.tmp_dir / f"event_{talk.submission_id}_person_{speaker.id}.png"
         img.save(filename)
         self.log.debug(
-            f"Generated single-speaker image for {speaker.get_display_name()!r} "
-            f"of talk {talk.submission.title!r}, saved as {filename}"
+            "Generated single-speaker image for %r of talk %r, saved as %s",
+            speaker.get_display_name(),
+            talk.submission.title,
+            filename,
         )
         return filename
 
     def export_talk(self, talk):
-        img = Image.new(
-            mode="RGBA",
-            size=(IMG_WIDTH, IMG_HEIGHT),
-            color=(0, 0, 0, 0),
-        )
+        img = Image.new(mode="RGBA", size=(IMG_WIDTH, IMG_HEIGHT), color=(0, 0, 0, 0))
 
         title_text = self._fit_text(talk.submission.title, self.font_title, BOX_WIDTH)
         speaker_text = self._fit_text(
-            ", ".join([person.get_display_name() for person in talk.submission.speakers.all()]),
+            ", ".join(
+                [person.get_display_name() for person in talk.submission.speakers.all()]
+            ),
             self.font_speaker,
             BOX_WIDTH,
         )
@@ -231,10 +215,7 @@ class VoctomixLowerThirdsExporter:
 
         for line in title_text:
             draw.text(
-                (BOX_LEFT, y_pos),
-                line,
-                font=self.font_title,
-                fill=(255, 255, 255),
+                (BOX_LEFT, y_pos), line, font=self.font_title, fill=(255, 255, 255)
             )
             y_pos += FONT_SIZE_TITLE
 
@@ -243,10 +224,7 @@ class VoctomixLowerThirdsExporter:
 
         for line in speaker_text:
             draw.text(
-                (BOX_LEFT, y_pos),
-                line,
-                font=self.font_speaker,
-                fill=(255, 255, 255),
+                (BOX_LEFT, y_pos), line, font=self.font_speaker, fill=(255, 255, 255)
             )
             y_pos += FONT_SIZE_SPEAKER
 
@@ -260,30 +238,41 @@ class VoctomixLowerThirdsExporter:
 
         filename = self.tmp_dir / f"event_{talk.submission_id}_persons.png"
         img.save(filename)
-        self.log.debug(f"Generated image for talk {talk.submission.title!r}, saved as {filename}")
+        self.log.debug(
+            "Generated image for talk %r, saved as %s", talk.submission.title, filename
+        )
         return filename
 
     def export(self):
         generated_files = set()
         if not self.event.current_schedule:
-            raise CommandError(f"event {self.event.slug} ({self.event.name}) does not have a schedule to be exported!")
+            raise CommandError(
+                f"event {self.event.slug} ({self.event.name}) does not have a schedule to be exported!"
+            )
 
-        self.log.info(f"Generating voctomix-compatible lower thirds for event {self.event.name}")
+        self.log.info(
+            "Generating voctomix-compatible lower thirds for event %s", self.event.name
+        )
 
-        for talk in self.event.current_schedule.talks.filter(is_visible=True).select_related("submission"):
+        for talk in self.event.current_schedule.talks.filter(
+            is_visible=True
+        ).select_related("submission"):
             if talk.id in self.exported:
                 # account for talks that are scheduled multiple times
                 self.log.warning(
-                    f"Talk {talk.submission.title!r} was already generated, skipping. "
-                    "(Possibly scheduled multiple times?)"
+                    "Talk %r was already generated, skipping. (Possibly scheduled multiple times?)",
+                    talk.submission.title,
                 )
                 continue
 
             if talk.submission is None:
-                self.log.info(f"Talk {talk.id} has no associated submission, this is a break. Skipping.")
+                self.log.info(
+                    "Talk %s has no associated submission, this is a break. Skipping.",
+                    talk.id,
+                )
                 continue
 
-            self.log.info(f"Generating image(s) for talk {talk.submission.title!r}")
+            self.log.info("Generating image(s) for talk %r", talk.submission.title)
             generated_files.add(self.export_talk(talk))
             for speaker in talk.submission.speakers.all():
                 generated_files.add(self.export_speaker(talk, speaker))
@@ -304,11 +293,13 @@ class Command(BaseCommand):
         with scopes_disabled():
             try:
                 event = Event.objects.get(slug__iexact=event_slug)
-            except Event.DoesNotExist:
-                raise CommandError(f"could not find event with slug {event_slug!r}")
+            except Event.DoesNotExist as exc:
+                raise CommandError(
+                    f"could not find event with slug {event_slug!r}"
+                ) from exc
 
         with scope(event=event):
-            logging.info(f"Exporting {event.name}")
+            LOG.info("Exporting %s", event.name)
 
             export_dir = get_export_path(event)
             targz_path = get_export_targz_path(event)
@@ -323,9 +314,13 @@ class Command(BaseCommand):
                 generated_files = exporter.export()
                 make_targz(generated_files, targz_path)
             except Exception:
-                logging.exception(f"Export of {event.name} failed")
+                LOG.exception("Export of %s failed", event.name)
             else:
-                logging.info(f"Export of {event.name} succeeded, export available at {targz_path}")
+                LOG.info(
+                    "Export of %s succeeded, export available at %s",
+                    event.name,
+                    targz_path,
+                )
             finally:
                 if not options.get("no_delete_source_files"):
                     delete_directory(export_dir)

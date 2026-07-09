@@ -47,16 +47,14 @@ urlpatterns = [
                     name="public_qr_id",
                 ),
                 path(
-                    "room-info/",
-                    BroadcastToolsRoomInfoView.as_view(),
-                    name="room_info",
+                    "room-info/", BroadcastToolsRoomInfoView.as_view(), name="room_info"
                 ),
                 path(
                     "room-timer/",
                     BroadcastToolsRoomTimerView.as_view(),
                     name="room_timer",
                 ),
-            ],
+            ]
         ),
     ),
     path(

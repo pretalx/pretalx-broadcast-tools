@@ -1,9 +1,16 @@
 import datetime as dt
 
 import pytest
+from django.core.cache import cache as dj_cache
 from django.utils.timezone import now
 from django_scopes import scopes_disabled
+
+from pretalx.event.domain.event import initialise_event
+from pretalx.event.domain.plugins import enable_plugin
 from pretalx.event.models import Event
+from pretalx.schedule.domain.release import freeze_schedule
+from pretalx.schedule.models import Room, TalkSlot
+from pretalx.submission.models import Submission, SubmissionType
 
 from pretalx_broadcast_tools import tasks
 from pretalx_broadcast_tools.management.commands.export_voctomix_lower_thirds import (
@@ -25,7 +32,7 @@ def test_export_task_no_schedule(event, caplog):
 
 @pytest.mark.django_db
 def test_export_task_success(event, submission, schedule, mocker):
-    mocked = mocker.patch("django.core.management.call_command")
+    mocked = mocker.patch("pretalx_broadcast_tools.tasks.call_command")
     tasks.export_voctomix_lower_thirds(event_id=event.id)
     mocked.assert_called_once()
 
@@ -38,9 +45,9 @@ def test_periodic_export_disabled(event, submission, schedule):
 
 @pytest.mark.django_db
 def test_periodic_export_rebuild_paths(event, submission, schedule, mocker, settings):
-    settings.CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
-    from django.core.cache import cache as dj_cache
-
+    settings.CACHES = {
+        "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+    }
     dj_cache.clear()
     apply_async = mocker.patch.object(tasks.export_voctomix_lower_thirds, "apply_async")
     with scopes_disabled():
@@ -63,9 +70,7 @@ def test_periodic_export_rebuild_paths(event, submission, schedule, mocker, sett
     # 3. stale last_rebuild -> rebuild
     with scopes_disabled():
         reload().cache.set(
-            "broadcast_tools_last_voctomix_export",
-            now() - dt.timedelta(hours=2),
-            None,
+            "broadcast_tools_last_voctomix_export", now() - dt.timedelta(hours=2), None
         )
     tasks.task_periodic_voctomix_export(event_slug=event.slug)
     assert apply_async.call_count == 2
@@ -81,14 +86,11 @@ def test_periodic_export_rebuild_paths(event, submission, schedule, mocker, sett
 
 @pytest.mark.django_db
 def test_periodic_event_services(organiser, mocker):
-    apply_async = mocker.patch.object(tasks.task_periodic_voctomix_export, "apply_async")
+    apply_async = mocker.patch.object(
+        tasks.task_periodic_voctomix_export, "apply_async"
+    )
     today = dt.date.today()
     with scopes_disabled():
-        from pretalx.event.domain.event import initialise_event
-        from pretalx.event.domain.plugins import enable_plugin
-        from pretalx.schedule.domain.release import freeze_schedule
-        from pretalx.schedule.models import Room, TalkSlot
-        from pretalx.submission.models import Submission, SubmissionType
 
         def make_event(slug, date_to, *, enabled):
             ev = Event.objects.create(
@@ -103,9 +105,13 @@ def test_periodic_event_services(organiser, mocker):
             initialise_event(ev)
             enable_plugin(ev, "pretalx_broadcast_tools")
             ev.save()
-            sub_type = SubmissionType.objects.create(event=ev, name="Talk", default_duration=30)
+            sub_type = SubmissionType.objects.create(
+                event=ev, name="Talk", default_duration=30
+            )
             room = Room.objects.create(event=ev, name="R")
-            sub = Submission.objects.create(title="T", event=ev, submission_type=sub_type, content_locale="en")
+            sub = Submission.objects.create(
+                title="T", event=ev, submission_type=sub_type, content_locale="en"
+            )
             sub.accept()
             sub.confirm()
             TalkSlot.objects.create(

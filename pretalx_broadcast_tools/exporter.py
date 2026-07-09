@@ -2,7 +2,6 @@ from tempfile import NamedTemporaryFile
 
 from django.utils.translation import gettext_noop
 from i18nfield.strings import LazyI18nString
-from pretalx.schedule.interfaces.exporters import ScheduleData
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
@@ -17,6 +16,8 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+
+from pretalx.schedule.interfaces.exporters import ScheduleData
 
 from pretalx_broadcast_tools.utils.placeholders import placeholders
 
@@ -42,37 +43,47 @@ class PDFInfoPage(Flowable):
     @property
     def _questions(self):
         result = set()
-        for i in (self.event.settings.broadcast_tools_pdf_questions_to_include or "").split(","):
-            i = i.strip()
-            if not i:
+        for entry in (
+            self.event.settings.broadcast_tools_pdf_questions_to_include or ""
+        ).split(","):
+            question_id = entry.strip()
+            if not question_id:
                 continue
             try:
-                result.add(int(i))
+                result.add(int(question_id))
             except ValueError:
                 # Ignore non-numeric entries instead of breaking the export.
                 continue
         return result
 
     def _add(self, item, gap=2):
-        _, height = item.wrapOn(self.canv, A4_WIDTH - 2 * PAGE_PADDING, A4_HEIGHT - 2 * PAGE_PADDING)
+        _, height = item.wrapOn(
+            self.canv, A4_WIDTH - 2 * PAGE_PADDING, A4_HEIGHT - 2 * PAGE_PADDING
+        )
         self.y_position += height + gap * mm
         item.drawOn(self.canv, PAGE_PADDING, -self.y_position)
 
     def _checkbox_text(self, text, **kwargs):
         item = Paragraph(text, **kwargs)
-        _, height = item.wrapOn(self.canv, A4_WIDTH - 2 * PAGE_PADDING, A4_HEIGHT - 2 * PAGE_PADDING)
+        _, height = item.wrapOn(
+            self.canv, A4_WIDTH - 2 * PAGE_PADDING, A4_HEIGHT - 2 * PAGE_PADDING
+        )
         self.y_position += height + 2 * mm
         item.drawOn(self.canv, PAGE_PADDING + 1.3 * height, -self.y_position)
         self.canv.rect(PAGE_PADDING, -self.y_position, height * 0.8, height * 0.8)
 
     def _question_text(self, question, answer, **kwargs):
         item = Paragraph(question, **kwargs)
-        _, height = item.wrapOn(self.canv, A4_WIDTH - 2 * PAGE_PADDING, A4_HEIGHT - 2 * PAGE_PADDING)
+        _, height = item.wrapOn(
+            self.canv, A4_WIDTH - 2 * PAGE_PADDING, A4_HEIGHT - 2 * PAGE_PADDING
+        )
         self.y_position += height + 2 * mm
         item.drawOn(self.canv, PAGE_PADDING, -self.y_position)
 
         item = Paragraph(answer, **kwargs)
-        _, height = item.wrapOn(self.canv, A4_WIDTH - 3 * PAGE_PADDING, A4_HEIGHT - 2 * PAGE_PADDING)
+        _, height = item.wrapOn(
+            self.canv, A4_WIDTH - 3 * PAGE_PADDING, A4_HEIGHT - 2 * PAGE_PADDING
+        )
         self.y_position += height + 2 * mm
         item.drawOn(self.canv, 2 * PAGE_PADDING, -self.y_position)
 
@@ -101,13 +112,15 @@ class PDFInfoPage(Flowable):
             " | ".join(
                 [
                     self.talk.submission.code,
-                    self.talk.submission.submission_type.name.localize(self.event.locale),
+                    self.talk.submission.submission_type.name.localize(
+                        self.event.locale
+                    ),
                     self.event.name.localize(self.event.locale),
                     talk_start.isoformat(),
                     f"Day {self.day['index']}",
                     self.room["name"].localize(self.event.locale),
                     f"Schedule {self.schedule.version}",
-                ],
+                ]
             ),
         )
         self.canv.restoreState()
@@ -130,19 +143,18 @@ class PDFInfoPage(Flowable):
                         self._localize(self.room["name"]),
                         talk_start.strftime("%F"),
                         f"{talk_start.strftime('%T')} - {talk_end.strftime('%T')}",
-                    ],
+                    ]
                 ),
                 style=self.style["Meta"],
             )
         )
-        self._add(Paragraph(self.talk.submission.title, style=self.style["Title"]), gap=0)
+        self._add(
+            Paragraph(self.talk.submission.title, style=self.style["Title"]), gap=0
+        )
         self._space()
 
         for spk in self.talk.submission.speakers.all():
-            self._checkbox_text(
-                spk.get_display_name(),
-                style=self.style["Speaker"],
-            )
+            self._checkbox_text(spk.get_display_name(), style=self.style["Speaker"])
         self._space()
 
         if self.talk.submission.track:
@@ -182,10 +194,7 @@ class PDFInfoPage(Flowable):
 
         if self.talk.submission.abstract:
             self._add(
-                Paragraph(
-                    self.talk.submission.abstract,
-                    style=self.style["Abstract"],
-                )
+                Paragraph(self.talk.submission.abstract, style=self.style["Abstract"])
             )
 
         if self.event.settings.broadcast_tools_pdf_additional_content:
@@ -202,10 +211,7 @@ class PDFInfoPage(Flowable):
         if self.talk.submission.answers and self._questions:
             self._space()
             self._add(
-                Paragraph(
-                    self._localize(_("Questions")),
-                    style=self.style["Heading"],
-                )
+                Paragraph(self._localize(_("Questions")), style=self.style["Heading"])
             )
 
             for answer in self.talk.submission.answers.order_by("question__position"):
@@ -230,40 +236,29 @@ class PDFInfoPage(Flowable):
         if self.talk.submission.notes:
             self._space()
             self._add(
-                Paragraph(
-                    self._localize(_("Notes")),
-                    style=self.style["Heading"],
-                )
+                Paragraph(self._localize(_("Notes")), style=self.style["Heading"])
             )
-            for line in self.talk.submission.notes.splitlines():
-                line = line.strip()
+            for raw_line in self.talk.submission.notes.splitlines():
+                line = raw_line.strip()
                 if not line:
                     continue
-                self._add(
-                    Paragraph(
-                        line,
-                        style=self.style["Notes"],
-                    )
-                )
+                self._add(Paragraph(line, style=self.style["Notes"]))
 
-        if self.talk.submission.internal_notes and self.event.settings.broadcast_tools_pdf_show_internal_notes:
+        if (
+            self.talk.submission.internal_notes
+            and self.event.settings.broadcast_tools_pdf_show_internal_notes
+        ):
             self._space()
             self._add(
                 Paragraph(
-                    self._localize(_("Internal Notes")),
-                    style=self.style["Heading"],
+                    self._localize(_("Internal Notes")), style=self.style["Heading"]
                 )
             )
-            for line in self.talk.submission.internal_notes.splitlines():
-                line = line.strip()
+            for raw_line in self.talk.submission.internal_notes.splitlines():
+                line = raw_line.strip()
                 if not line:
                     continue
-                self._add(
-                    Paragraph(
-                        line,
-                        style=self.style["Notes"],
-                    )
-                )
+                self._add(Paragraph(line, style=self.style["Notes"]))
 
 
 class PDFExporter(ScheduleData):
@@ -278,7 +273,10 @@ class PDFExporter(ScheduleData):
         for fahrplan_day in self.data:
             for room_details in fahrplan_day["rooms"]:
                 for talk in room_details["talks"]:
-                    if talk.submission.do_not_record and self.event.settings.broadcast_tools_pdf_ignore_do_not_record:
+                    if (
+                        talk.submission.do_not_record
+                        and self.event.settings.broadcast_tools_pdf_ignore_do_not_record
+                    ):
                         continue
                     pages.append(
                         PDFInfoPage(
@@ -296,14 +294,40 @@ class PDFExporter(ScheduleData):
     @property
     def _style(self):
         stylesheet = StyleSheet1()
-        stylesheet.add(ParagraphStyle(name="Normal", fontName="Helvetica", fontSize=12, leading=14))
-        stylesheet.add(ParagraphStyle(name="Title", fontName="Helvetica-Bold", fontSize=20, leading=24))
-        stylesheet.add(ParagraphStyle(name="Speaker", fontName="Helvetica-Oblique", fontSize=12, leading=14))
-        stylesheet.add(ParagraphStyle(name="Meta", fontName="Helvetica", fontSize=14, leading=16))
-        stylesheet.add(ParagraphStyle(name="Heading", fontName="Helvetica-Bold", fontSize=14, leading=16))
-        stylesheet.add(ParagraphStyle(name="Question", fontName="Helvetica", fontSize=12, leading=14))
-        stylesheet.add(ParagraphStyle(name="Abstract", fontName="Helvetica-Oblique", fontSize=10, leading=12))
-        stylesheet.add(ParagraphStyle(name="Notes", fontName="Helvetica", fontSize=12, leading=14))
+        stylesheet.add(
+            ParagraphStyle(name="Normal", fontName="Helvetica", fontSize=12, leading=14)
+        )
+        stylesheet.add(
+            ParagraphStyle(
+                name="Title", fontName="Helvetica-Bold", fontSize=20, leading=24
+            )
+        )
+        stylesheet.add(
+            ParagraphStyle(
+                name="Speaker", fontName="Helvetica-Oblique", fontSize=12, leading=14
+            )
+        )
+        stylesheet.add(
+            ParagraphStyle(name="Meta", fontName="Helvetica", fontSize=14, leading=16)
+        )
+        stylesheet.add(
+            ParagraphStyle(
+                name="Heading", fontName="Helvetica-Bold", fontSize=14, leading=16
+            )
+        )
+        stylesheet.add(
+            ParagraphStyle(
+                name="Question", fontName="Helvetica", fontSize=12, leading=14
+            )
+        )
+        stylesheet.add(
+            ParagraphStyle(
+                name="Abstract", fontName="Helvetica-Oblique", fontSize=10, leading=12
+            )
+        )
+        stylesheet.add(
+            ParagraphStyle(name="Notes", fontName="Helvetica", fontSize=12, leading=14)
+        )
         stylesheet.add(
             ParagraphStyle(
                 name="Warning",
