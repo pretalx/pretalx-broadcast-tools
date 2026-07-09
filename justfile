@@ -4,7 +4,7 @@ set fallback
 set positional-arguments
 set default-list
 
-uv_dev := "uv run --frozen --extra=dev"
+uv_dev := "uv run --extra=dev"
 
 # Run ruff format
 [group('linting')]
