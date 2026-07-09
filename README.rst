@@ -24,7 +24,7 @@ The event color is `#EA652D`, a bright orange. The track color is `#857EB0`,
 a light purple. The last screenshot shows "Multi-layered encompassing
 paradigm" by "Michael Rodriguez".
 
-.. image:: img/lower_thirds.png
+.. image:: https://raw.githubusercontent.com/pretalx/pretalx-broadcast-tools/main/assets/lower_thirds.png
    :width: 400
    :alt: Screenshot of "lower thirds" view. The box is located in the
          bottom quarter of the screen, taking about half the screen width.
@@ -33,7 +33,7 @@ paradigm" by "Michael Rodriguez".
          title is shown in large text on top, the speaker name below that.
          On the bottom right of the box the configured info line is shown.
 
-.. image:: img/room_info.png
+.. image:: https://raw.githubusercontent.com/pretalx/pretalx-broadcast-tools/main/assets/room_info.png
    :width: 400
    :alt: Screenshot of the "room info" view. The whole screen is coloured
          in the track color. On top of the screen you see the room name
@@ -43,7 +43,7 @@ paradigm" by "Michael Rodriguez".
          in the schedule. The URL is also shown in plain-text below the
          QR code.
 
-.. image:: img/pdf_export.png
+.. image:: https://raw.githubusercontent.com/pretalx/pretalx-broadcast-tools/main/assets/pdf_export.png
    :width: 400
    :alt: Screenshot of the first half of a pdf page. On the top you see
          a large text "DO NOT RECORD - DO NOT STREAM", because the speaker

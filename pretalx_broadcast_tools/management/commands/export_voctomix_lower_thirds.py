@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django_scopes import scope, scopes_disabled
 from PIL import Image, ImageDraw, ImageFont
+
 from pretalx.agenda.html_export import delete_directory
 from pretalx.event.models import Event
 
