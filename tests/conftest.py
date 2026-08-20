@@ -7,7 +7,7 @@ from django_scopes import scopes_disabled
 from pretalx.event.domain.event import initialise_event
 from pretalx.event.domain.plugins import enable_plugin
 from pretalx.event.models import Event, Organiser, Team
-from pretalx.person.models import User
+from pretalx.person.models import SpeakerProfile, User
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.models import Room, TalkSlot
 from pretalx.submission.domain.submission import add_speaker
@@ -139,9 +139,10 @@ def submission_type(event):
 @pytest.fixture
 def speaker(event):
     with scopes_disabled():
-        return User.objects.create_user(
+        user = User.objects.create_user(
             password="speakerpassw0rd", email="speaker@example.org", name="Jane Speaker"
         )
+        return SpeakerProfile.objects.create(user=user, event=event)
 
 
 @pytest.fixture
@@ -157,7 +158,7 @@ def submission(event, submission_type, track, speaker):
             notes="Some notes.\n\n  \nAnother note line.",
             internal_notes="Internal note one.\n\nInternal note two.",
         )
-        add_speaker(sub, user=speaker)
+        add_speaker(sub, speaker)
         sub.accept()
         sub.confirm()
         return sub

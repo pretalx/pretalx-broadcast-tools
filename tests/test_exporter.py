@@ -6,7 +6,7 @@ from django_scopes import scope, scopes_disabled
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import PageBreak, SimpleDocTemplate
 
-from pretalx.person.models import User
+from pretalx.person.models import SpeakerProfile, User
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.models import TalkSlot
 from pretalx.submission.domain.submission import add_speaker
@@ -22,8 +22,11 @@ def rich_schedule(event, submission_type, room):
         track = Track.objects.create(
             event=event, name="Coloured Track", color="#123456"
         )
-        spk = User.objects.create_user(
-            password="x", email="spk@example.org", name="Spk Name"
+        spk = SpeakerProfile.objects.create(
+            user=User.objects.create_user(
+                password="x", email="spk@example.org", name="Spk Name"
+            ),
+            event=event,
         )
 
         sub_a = Submission.objects.create(
@@ -36,7 +39,7 @@ def rich_schedule(event, submission_type, room):
             notes="A note\n\n   \nAnother note",
             internal_notes="Internal one\n\n  \nInternal two",
         )
-        add_speaker(sub_a, user=spk)
+        add_speaker(sub_a, spk)
         sub_a.accept()
         sub_a.confirm()
 

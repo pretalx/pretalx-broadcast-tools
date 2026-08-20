@@ -6,7 +6,7 @@ from django.core.management.base import CommandError
 from django_scopes import scope, scopes_disabled
 from i18nfield.strings import LazyI18nString
 
-from pretalx.person.models import User
+from pretalx.person.models import SpeakerProfile, User
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.enums import SlotType
 from pretalx.schedule.models import TalkSlot
@@ -121,10 +121,13 @@ def test_exporter_track_without_color(event, submission_type, room, tmp_path):
             submission_type=submission_type,
             content_locale="en",
         )
-        spk = User.objects.create_user(
-            password="x", email="s2@example.org", name="S Two"
+        spk = SpeakerProfile.objects.create(
+            user=User.objects.create_user(
+                password="x", email="s2@example.org", name="S Two"
+            ),
+            event=event,
         )
-        add_speaker(sub, user=spk)
+        add_speaker(sub, spk)
         sub.accept()
         sub.confirm()
         TalkSlot.objects.create(
