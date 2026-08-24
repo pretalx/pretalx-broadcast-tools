@@ -6,6 +6,7 @@ from django.core.management.base import CommandError
 from django_scopes import scope, scopes_disabled
 from i18nfield.strings import LazyI18nString
 
+from pretalx.person.enums import EmailVerificationState
 from pretalx.person.models import SpeakerProfile, User
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.enums import SlotType
@@ -123,7 +124,10 @@ def test_exporter_track_without_color(event, submission_type, room, tmp_path):
         )
         spk = SpeakerProfile.objects.create(
             user=User.objects.create_user(
-                password="x", email="s2@example.org", name="S Two"
+                password="x",
+                email="s2@example.org",
+                name="S Two",
+                email_verification_state=EmailVerificationState.VERIFIED,
             ),
             event=event,
         )

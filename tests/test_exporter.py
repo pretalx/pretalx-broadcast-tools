@@ -6,6 +6,7 @@ from django_scopes import scope, scopes_disabled
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import PageBreak, SimpleDocTemplate
 
+from pretalx.person.enums import EmailVerificationState
 from pretalx.person.models import SpeakerProfile, User
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.models import TalkSlot
@@ -24,7 +25,10 @@ def rich_schedule(event, submission_type, room):
         )
         spk = SpeakerProfile.objects.create(
             user=User.objects.create_user(
-                password="x", email="spk@example.org", name="Spk Name"
+                password="x",
+                email="spk@example.org",
+                name="Spk Name",
+                email_verification_state=EmailVerificationState.VERIFIED,
             ),
             event=event,
         )
