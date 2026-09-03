@@ -69,7 +69,9 @@ def test_register_data_exporter(event):
 @pytest.mark.django_db
 def test_placeholders_with_track_html(event, submission, schedule):
     with scope(event=event):
-        talk = event.current_schedule.talks.first()
+        talk = event.current_schedule.talks.select_related(
+            "submission__event", "submission__track"
+        ).first()
         result = placeholders(event, talk, supports_html_colour=True)
     assert result["CODE"] == submission.code
     assert result["EVENT_SLUG"] == event.slug
@@ -80,7 +82,9 @@ def test_placeholders_with_track_html(event, submission, schedule):
 @pytest.mark.django_db
 def test_placeholders_with_track_no_html(event, submission, schedule):
     with scope(event=event):
-        talk = event.current_schedule.talks.first()
+        talk = event.current_schedule.talks.select_related(
+            "submission__event", "submission__track"
+        ).first()
         result = placeholders(event, talk, supports_html_colour=False)
     assert result["TRACK_NAME_COLOURED"] == "Test Track"
 
@@ -106,7 +110,9 @@ def test_placeholders_without_track(event, room, submission_type):
         )
         freeze_schedule(event.wip_schedule, name="v1")
     with scope(event=event):
-        talk = event.current_schedule.talks.first()
+        talk = event.current_schedule.talks.select_related(
+            "submission__event", "submission__track"
+        ).first()
         result = placeholders(event, talk, supports_html_colour=True)
     assert result["TRACK_NAME"] == ""
     assert result["TRACK_NAME_COLOURED"] == ""

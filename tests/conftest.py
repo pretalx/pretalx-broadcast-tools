@@ -75,7 +75,7 @@ def event(organiser):
 
 
 @pytest.fixture
-def orga_user(event):
+def orga_user(organiser, event):
     with scopes_disabled():
         user = User.objects.create_user(
             password="orgapassw0rd",
@@ -83,7 +83,7 @@ def orga_user(event):
             name="Orga User",
             email_verification_state=EmailVerificationState.VERIFIED,
         )
-        team = event.organiser.teams.filter(
+        team = organiser.teams.filter(
             can_change_organiser_settings=True, is_reviewer=False
         ).first()
         team.members.add(user)
@@ -92,7 +92,7 @@ def orga_user(event):
 
 
 @pytest.fixture
-def review_user(event):
+def review_user(organiser, event):
     with scopes_disabled():
         user = User.objects.create_user(
             password="reviewpassw0rd",
@@ -100,7 +100,7 @@ def review_user(event):
             name="Review User",
             email_verification_state=EmailVerificationState.VERIFIED,
         )
-        team = event.organiser.teams.filter(
+        team = organiser.teams.filter(
             can_change_organiser_settings=False, is_reviewer=True
         ).first()
         team.members.add(user)

@@ -185,7 +185,11 @@ def test_export_talk_without_title_or_speakers(event, submission_type, room, tmp
         freeze_schedule(event.wip_schedule, name="v1")
     with scope(event=event):
         exporter = VoctomixLowerThirdsExporter(event, tmp_path)
-        talk = event.current_schedule.talks.filter(is_visible=True).first()
+        talk = (
+            event.current_schedule.talks.filter(is_visible=True)
+            .select_related("submission__event", "submission__track")
+            .first()
+        )
         talk.submission.title = ""  # in-memory only, exercises empty-title path
         filename = exporter.export_talk(talk)
     assert filename.exists()
@@ -201,6 +205,10 @@ def test_export_speaker_without_display_name(event, submission, schedule, tmp_pa
 
     with scope(event=event):
         exporter = VoctomixLowerThirdsExporter(event, tmp_path)
-        talk = event.current_schedule.talks.filter(is_visible=True).first()
+        talk = (
+            event.current_schedule.talks.filter(is_visible=True)
+            .select_related("submission__event", "submission__track")
+            .first()
+        )
         filename = exporter.export_speaker(talk, _BlankSpeaker())
     assert filename.exists()

@@ -254,9 +254,11 @@ class VoctomixLowerThirdsExporter:
             "Generating voctomix-compatible lower thirds for event %s", self.event.name
         )
 
-        for talk in self.event.current_schedule.talks.filter(
-            is_visible=True
-        ).select_related("submission"):
+        for talk in (
+            self.event.current_schedule.talks.filter(is_visible=True)
+            .select_related("submission", "submission__event", "submission__track")
+            .prefetch_related("submission__speakers__user")
+        ):
             if talk.id in self.exported:
                 # account for talks that are scheduled multiple times
                 self.log.warning(
