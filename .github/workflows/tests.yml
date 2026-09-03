@@ -18,6 +18,23 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pretalx
+        options: >-
+          --health-cmd "pg_isready -U postgres -d pretalx"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -28,5 +45,18 @@ jobs:
         with:
           enable-cache: true
       - uses: extractions/setup-just@v4
+      - name: Install postgres driver
+        if: matrix.database == 'postgres'
+        run: uv sync --extra=dev && uv pip install psycopg2-binary
       - name: Run tests
+        if: matrix.database == 'sqlite'
         run: just test
+      - name: Run tests
+        if: matrix.database == 'postgres'
+        run: just test
+        env:
+          PRETALX_DB_TYPE: postgresql
+          PRETALX_DB_NAME: pretalx
+          PRETALX_DB_USER: postgres
+          PRETALX_DB_PASS: postgres
+          PRETALX_DB_HOST: localhost
