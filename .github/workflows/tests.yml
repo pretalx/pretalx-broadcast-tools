@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   test:
-    name: Tests
+    name: Tests (${{ matrix.database }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -60,3 +60,13 @@ jobs:
           PRETALX_DB_USER: postgres
           PRETALX_DB_PASS: postgres
           PRETALX_DB_HOST: localhost
+
+  tests:
+    # ⁂ Aggregate check for branch protection: matrix jobs report as "Tests (sqlite)" etc.
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+    steps:
+      - if: needs.test.result != 'success'
+        run: exit 1
