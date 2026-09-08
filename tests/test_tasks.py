@@ -92,7 +92,7 @@ def test_periodic_event_services(organiser, mocker):
     today = dt.date.today()
     with scopes_disabled():
 
-        def make_event(slug, date_to, *, enabled):
+        def make_event(slug, date_to, *, enabled, plugin=True):
             ev = Event.objects.create(
                 name=f"Event {slug}",
                 is_public=True,
@@ -103,7 +103,8 @@ def test_periodic_event_services(organiser, mocker):
                 organiser=organiser,
             )
             initialise_event(ev)
-            enable_plugin(ev, "pretalx_broadcast_tools")
+            if plugin:
+                enable_plugin(ev, "pretalx_broadcast_tools")
             ev.save()
             sub_type = SubmissionType.objects.create(
                 event=ev, name="Talk", default_duration=30
@@ -133,6 +134,8 @@ def test_periodic_event_services(organiser, mocker):
         make_event("live-disabled", today, enabled=False)
         # event that ended long ago -> excluded by the date filter entirely
         make_event("ancient", today - dt.timedelta(days=10), enabled=True)
+        # ongoing event without the plugin -> excluded by the plugin filter
+        make_event("no-plugin", today, enabled=True, plugin=False)
 
     tasks.periodic_event_services(sender=None)
     apply_async.assert_called_once()
