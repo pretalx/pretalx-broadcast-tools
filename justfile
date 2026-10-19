@@ -26,10 +26,14 @@ djangofmt-check:
     just djangofmt
     git diff --exit-code -- '*.html' || (echo "HTML templates are not formatted. Run 'just djangofmt' to fix." && exit 1)
 
+# Check that VCS files and the sdist match (CI runs this)
+[group('linting')]
+check-manifest:
+    uv run --no-project --with check-manifest check-manifest
+
 # Run all formatters and linters
 [group('linting')]
-[parallel]
-fmt: format (check "--fix") djangofmt && fmt-done
+fmt: (check "--fix") format djangofmt && fmt-done
 
 [private]
 fmt-done:
