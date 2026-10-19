@@ -38,57 +38,48 @@ def test_export_task_success(event, submission, schedule, mocker):
 
 
 @pytest.mark.django_db
-def test_periodic_export_disabled(event, submission, schedule):
-    # setting disabled by default -> early return, no exception
-    tasks.task_periodic_voctomix_export(event_slug=event.slug)
+def test_needs_voctomix_export(event, submission, schedule, settings):
+    settings.CACHES = {
+        "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+    }
+    dj_cache.clear()
+
+    def reload():
+        with scopes_disabled():
+            return Event.objects.get(slug=event.slug)
+
+    # no targz, no last export
+    assert tasks.needs_voctomix_export(reload())
+
+    # targz present, no last export
+    targz = get_export_targz_path(event)
+    targz.parent.mkdir(parents=True, exist_ok=True)
+    targz.write_bytes(b"x")
+    assert tasks.needs_voctomix_export(reload())
+
+    # targz present, recent export
+    reload().cache.set("broadcast_tools_last_voctomix_export", now(), None)
+    assert not tasks.needs_voctomix_export(reload())
+
+    # targz present, stale export
+    reload().cache.set(
+        "broadcast_tools_last_voctomix_export", now() - dt.timedelta(hours=2), None
+    )
+    assert tasks.needs_voctomix_export(reload())
+
+    # forced export
+    reload().cache.set("broadcast_tools_last_voctomix_export", now(), None)
+    reload().cache.set("broadcast_tools_force_new_voctomix_export", True, None)
+    assert tasks.needs_voctomix_export(reload())
 
 
 @pytest.mark.django_db
-def test_periodic_export_rebuild_paths(event, submission, schedule, mocker, settings):
+def test_periodic_event_services(organiser, mocker, settings):
     settings.CACHES = {
         "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
     }
     dj_cache.clear()
     apply_async = mocker.patch.object(tasks.export_voctomix_lower_thirds, "apply_async")
-    with scopes_disabled():
-        event.settings.broadcast_tools_lower_thirds_export_voctomix = True
-
-    def reload():
-        return Event.objects.get(slug=event.slug)
-
-    # 1. no targz, no last_rebuild -> rebuild
-    tasks.task_periodic_voctomix_export(event_slug=event.slug)
-    assert apply_async.call_count == 1
-
-    # 2. recent last_rebuild (set by step 1) + targz present -> no rebuild
-    targz = get_export_targz_path(event)
-    targz.parent.mkdir(parents=True, exist_ok=True)
-    targz.write_bytes(b"x")
-    tasks.task_periodic_voctomix_export(event_slug=event.slug)
-    assert apply_async.call_count == 1
-
-    # 3. stale last_rebuild -> rebuild
-    with scopes_disabled():
-        reload().cache.set(
-            "broadcast_tools_last_voctomix_export", now() - dt.timedelta(hours=2), None
-        )
-    tasks.task_periodic_voctomix_export(event_slug=event.slug)
-    assert apply_async.call_count == 2
-
-    # 4. forced rebuild
-    with scopes_disabled():
-        reloaded = reload()
-        reloaded.cache.set("broadcast_tools_last_voctomix_export", now(), None)
-        reloaded.cache.set("broadcast_tools_force_new_voctomix_export", True, None)
-    tasks.task_periodic_voctomix_export(event_slug=event.slug)
-    assert apply_async.call_count == 3
-
-
-@pytest.mark.django_db
-def test_periodic_event_services(organiser, mocker):
-    apply_async = mocker.patch.object(
-        tasks.task_periodic_voctomix_export, "apply_async"
-    )
     today = dt.date.today()
     with scopes_disabled():
 
@@ -129,7 +120,8 @@ def test_periodic_event_services(organiser, mocker):
             return ev
 
         # ongoing event with the feature enabled -> triggers an export
-        make_event("live", today, enabled=True)
+        live = make_event("live", today, enabled=True)
+        live.cache.set("broadcast_tools_force_new_voctomix_export", True, None)
         # ongoing event with the feature disabled -> skipped (continue)
         make_event("live-disabled", today, enabled=False)
         # event that ended long ago -> excluded by the date filter entirely
@@ -137,5 +129,18 @@ def test_periodic_event_services(organiser, mocker):
         # ongoing event without the plugin -> excluded by the plugin filter
         make_event("no-plugin", today, enabled=True, plugin=False)
 
+    tasks.periodic_event_services(sender=None)
+    apply_async.assert_called_once_with(
+        kwargs={"event_id": live.id}, ignore_result=True
+    )
+    with scopes_disabled():
+        live = Event.objects.get(slug="live")
+    assert not live.cache.get("broadcast_tools_force_new_voctomix_export")
+    assert live.cache.get("broadcast_tools_last_voctomix_export")
+
+    # export just dispatched and targz present -> next tick does nothing
+    targz = get_export_targz_path(live)
+    targz.parent.mkdir(parents=True, exist_ok=True)
+    targz.write_bytes(b"x")
     tasks.periodic_event_services(sender=None)
     apply_async.assert_called_once()

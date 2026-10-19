@@ -29,39 +29,17 @@ def export_voctomix_lower_thirds(*, event_id):
     call_command("export_voctomix_lower_thirds", event.slug)
 
 
-@app.task(name="pretalx_broadcast_tools.periodic_voctomix_export")
-def task_periodic_voctomix_export(*, event_slug):
+def needs_voctomix_export(event):
     from pretalx_broadcast_tools.management.commands.export_voctomix_lower_thirds import (  # noqa: PLC0415 -- slow import
         get_export_targz_path,
     )
 
-    with scopes_disabled():
-        event = Event.objects.filter(slug=event_slug).first()
-
-    with scope(event=event):
-        if (
-            not event.settings.broadcast_tools_lower_thirds_export_voctomix
-            or not event.current_schedule
-        ):
-            return
-
-        targz_path = get_export_targz_path(event)
-        needs_rebuild = False
-        last_rebuild = event.cache.get("broadcast_tools_last_voctomix_export")
-        _now = now()
-        if not targz_path.exists():
-            needs_rebuild = True
-        if not last_rebuild or _now - last_rebuild >= timedelta(hours=1):
-            needs_rebuild = True
-        if event.cache.get("broadcast_tools_force_new_voctomix_export"):
-            needs_rebuild = True
-
-        if needs_rebuild:
-            event.cache.delete("broadcast_tools_force_new_voctomix_export")
-            event.cache.set("broadcast_tools_last_voctomix_export", _now, None)
-            export_voctomix_lower_thirds.apply_async(
-                kwargs={"event_id": event.id}, ignore_result=True
-            )
+    if event.cache.get("broadcast_tools_force_new_voctomix_export"):
+        return True
+    if not get_export_targz_path(event).exists():
+        return True
+    last_rebuild = event.cache.get("broadcast_tools_last_voctomix_export")
+    return not last_rebuild or now() - last_rebuild >= timedelta(hours=1)
 
 
 @receiver(periodic_task)
@@ -75,8 +53,11 @@ def periodic_event_services(sender, **kwargs):
             if (
                 not event.settings.broadcast_tools_lower_thirds_export_voctomix
                 or not event.current_schedule
+                or not needs_voctomix_export(event)
             ):
                 continue
-            task_periodic_voctomix_export.apply_async(
-                kwargs={"event_slug": event.slug}, ignore_result=True
+            event.cache.delete("broadcast_tools_force_new_voctomix_export")
+            event.cache.set("broadcast_tools_last_voctomix_export", now(), None)
+            export_voctomix_lower_thirds.apply_async(
+                kwargs={"event_id": event.id}, ignore_result=True
             )
