@@ -268,13 +268,13 @@ class VoctomixLowerThirdsExporter:
                 continue
 
             if talk.submission is None:
-                self.log.info(
+                self.log.debug(
                     "Talk %s has no associated submission, this is a break. Skipping.",
                     talk.id,
                 )
                 continue
 
-            self.log.info("Generating image(s) for talk %r", talk.submission.title)
+            self.log.debug("Generating image(s) for talk %r", talk.submission.title)
             generated_files.add(self.export_talk(talk))
             for speaker in talk.submission.speakers.all():
                 generated_files.add(self.export_speaker(talk, speaker))
