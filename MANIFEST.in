@@ -8,3 +8,5 @@ recursive-include pretalx_broadcast_tools *.py
 include CHANGELOG.md
 include justfile
 include uv.lock
+exclude AGENTS.md
+exclude CLAUDE.md
